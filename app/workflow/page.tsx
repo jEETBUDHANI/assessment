@@ -6,22 +6,14 @@ import WorkflowCanvas from "@/components/workflow/WorkflowCanvas";
 import { UserButton } from "@clerk/nextjs";
 import { useWorkflowStore } from "@/store/workflowStore";
 import { ExecutionEngine } from "@/lib/executionEngine";
-import { useEffect, useRef } from "react";
-import { Node } from "reactflow";
-import { sampleWorkflow } from "@/lib/sampleWorkflow";
+import { useRef } from "react";
 import { ChevronDown, Download, Upload } from "lucide-react";
 
 export default function WorkflowPage() {
   const { nodes, edges, updateNodeData, setRunning, isRunning, setNodes, setEdges } = useWorkflowStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize with sample workflow if empty
-  useEffect(() => {
-    if (nodes.length === 0) {
-      setNodes(sampleWorkflow.nodes);
-      setEdges(sampleWorkflow.edges);
-    }
-  }, [nodes.length, setNodes, setEdges]);
+  // Canvas starts blank - users build their own workflows
 
 
   const handleRunWorkflow = async () => {
@@ -114,8 +106,27 @@ export default function WorkflowPage() {
 
       <div className="flex-1 flex flex-col min-w-0 relative">
         <header className="h-14 border-b border-gray-800 flex items-center justify-between px-6 bg-black z-10">
-          <div className="flex items-center gap-4">
-            <h1 className="font-semibold text-base">untitled</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleRunWorkflow}
+              disabled={isRunning || nodes.length === 0}
+              className="flex items-center gap-1.5 text-sm bg-white text-black hover:bg-gray-200 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed px-3 py-1.5 rounded-md transition-colors font-medium"
+              title="Run entire workflow"
+            >
+              {isRunning ? (
+                <>
+                  <div className="animate-spin h-3 w-3 border-2 border-gray-500 border-t-transparent rounded-full" />
+                  Running
+                </>
+              ) : (
+                <>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                  Run
+                </>
+              )}
+            </button>
           </div>
 
           <div className="flex items-center gap-4">
@@ -135,7 +146,6 @@ export default function WorkflowPage() {
               <Upload size={14} />
               Import
             </button>
-            <div className="h-4 w-px bg-gray-800" />
             <div className="text-sm text-gray-400">★ 150 credits</div>
             <button className="text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-md transition-colors">
               Share
@@ -149,9 +159,9 @@ export default function WorkflowPage() {
         </header>
 
         <WorkflowCanvas />
-      </div>
+      </div >
 
       <ExpandableHistory />
-    </main>
+    </main >
   );
 }

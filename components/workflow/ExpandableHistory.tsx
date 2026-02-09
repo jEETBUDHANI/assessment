@@ -26,37 +26,42 @@ export default function ExpandableHistory() {
     const [expandedRun, setExpandedRun] = useState<string | null>(null);
 
     useEffect(() => {
-        // Mock data - in real app, fetch from API
-        setRuns([
-            {
-                id: 'run-1',
-                timestamp: new Date().toISOString(),
-                status: 'success',
-                duration: '12.5s',
-                scope: 'full',
-                nodeCount: 6,
-                nodeExecutions: [
-                    { nodeId: 'text-1', nodeName: 'Text Node', status: 'success', duration: '0.1s', output: 'System prompt text' },
-                    { nodeId: 'image-1', nodeName: 'Upload Image', status: 'success', duration: '2.3s', output: 'https://cdn.transloadit.com/image.jpg' },
-                    { nodeId: 'crop-1', nodeName: 'Crop Image', status: 'success', duration: '1.8s', output: 'https://cdn.transloadit.com/cropped.jpg' },
-                    { nodeId: 'llm-1', nodeName: 'LLM Node', status: 'success', duration: '4.2s', output: 'Generated product description...' },
-                    { nodeId: 'video-1', nodeName: 'Upload Video', status: 'success', duration: '3.1s', output: 'https://cdn.transloadit.com/video.mp4' },
-                    { nodeId: 'frame-1', nodeName: 'Extract Frame', status: 'success', duration: '1.0s', output: 'https://cdn.transloadit.com/frame.jpg' },
-                ]
-            },
-            {
-                id: 'run-2',
-                timestamp: new Date(Date.now() - 300000).toISOString(),
-                status: 'partial',
-                duration: '8.3s',
-                scope: 'partial',
-                nodeCount: 2,
-                nodeExecutions: [
-                    { nodeId: 'crop-1', nodeName: 'Crop Image', status: 'success', duration: '1.5s', output: 'https://cdn.transloadit.com/cropped.jpg' },
-                    { nodeId: 'llm-1', nodeName: 'LLM Node', status: 'failed', duration: '3.1s', error: 'API rate limit exceeded' },
-                ]
+        async function fetchExecutions() {
+            try {
+                const response = await fetch('/api/executions');
+                if (!response.ok) {
+                    setRuns([]);
+                    return;
+                }
+
+                const data = await response.json();
+
+                // Transform database data to component format
+                const transformedRuns: WorkflowRun[] = data.map((execution: any) => ({
+                    id: execution.id,
+                    timestamp: execution.startTime,
+                    status: execution.status,
+                    duration: execution.duration ? `${(execution.duration / 1000).toFixed(1)}s` : undefined,
+                    scope: execution.scope,
+                    nodeCount: execution.nodeRuns.length,
+                    nodeExecutions: execution.nodeRuns.map((node: any) => ({
+                        nodeId: node.nodeId,
+                        nodeName: node.nodeType,
+                        status: node.status,
+                        duration: node.duration ? `${(node.duration / 1000).toFixed(1)}s` : '0.0s',
+                        output: node.outputs ? JSON.stringify(node.outputs) : undefined,
+                        error: node.error || undefined
+                    }))
+                }));
+
+                setRuns(transformedRuns);
+            } catch (error) {
+                console.error('Failed to fetch executions:', error);
+                setRuns([]);
             }
-        ]);
+        }
+
+        fetchExecutions();
     }, []);
 
     const getStatusIcon = (status: string) => {
@@ -86,64 +91,72 @@ export default function ExpandableHistory() {
             </div>
 
             <div className="flex-1 overflow-y-auto">
-                {runs.map((run) => (
-                    <div key={run.id} className="border-b border-gray-800">
-                        <button
-                            onClick={() => setExpandedRun(expandedRun === run.id ? null : run.id)}
-                            className="w-full p-3 hover:bg-gray-900/50 transition-colors text-left"
-                        >
-                            <div className="flex items-start justify-between gap-2">
-                                <div className="flex items-start gap-2 flex-1 min-w-0">
-                                    {expandedRun === run.id ? (
-                                        <ChevronDown size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                                    ) : (
-                                        <ChevronRight size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            {getStatusIcon(run.status)}
-                                            <span className={cn("text-xs font-medium", getStatusColor(run.status))}>
-                                                {run.scope === 'full' ? 'Full Workflow' : run.scope === 'partial' ? `${run.nodeCount} nodes` : 'Single Node'}
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-1 truncate">
-                                            {new Date(run.timestamp).toLocaleString()}
-                                        </p>
-                                        {run.duration && (
-                                            <p className="text-xs text-gray-600 mt-0.5">{run.duration}</p>
+                {runs.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                        <Clock size={48} className="text-gray-700 mb-3" />
+                        <p className="text-sm text-gray-400 mb-1">No workflow runs yet</p>
+                        <p className="text-xs text-gray-600">Execute a workflow to see history here</p>
+                    </div>
+                ) : (
+                    runs.map((run) => (
+                        <div key={run.id} className="border-b border-gray-800">
+                            <button
+                                onClick={() => setExpandedRun(expandedRun === run.id ? null : run.id)}
+                                className="w-full p-3 hover:bg-gray-900/50 transition-colors text-left"
+                            >
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                                        {expandedRun === run.id ? (
+                                            <ChevronDown size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                                        ) : (
+                                            <ChevronRight size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
                                         )}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                {getStatusIcon(run.status)}
+                                                <span className={cn("text-xs font-medium", getStatusColor(run.status))}>
+                                                    {run.scope === 'full' ? 'Full Workflow' : run.scope === 'partial' ? `${run.nodeCount} nodes` : 'Single Node'}
+                                                </span>
+                                            </div>
+                                            <p className="text-xs text-gray-500 mt-1 truncate">
+                                                {new Date(run.timestamp).toLocaleString()}
+                                            </p>
+                                            {run.duration && (
+                                                <p className="text-xs text-gray-600 mt-0.5">{run.duration}</p>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </button>
+                            </button>
 
-                        {expandedRun === run.id && (
-                            <div className="px-3 pb-3 space-y-2 bg-black/20">
-                                {run.nodeExecutions.map((node, idx) => (
-                                    <div key={idx} className="pl-6 py-2 border-l-2 border-gray-800">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            {getStatusIcon(node.status)}
-                                            <span className="text-xs font-medium text-gray-300">{node.nodeName}</span>
-                                            <span className="text-xs text-gray-600">{node.duration}</span>
+                            {expandedRun === run.id && (
+                                <div className="px-3 pb-3 space-y-2 bg-black/20">
+                                    {run.nodeExecutions.map((node, idx) => (
+                                        <div key={idx} className="pl-6 py-2 border-l-2 border-gray-800">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                {getStatusIcon(node.status)}
+                                                <span className="text-xs font-medium text-gray-300">{node.nodeName}</span>
+                                                <span className="text-xs text-gray-600">{node.duration}</span>
+                                            </div>
+                                            {node.output && (
+                                                <div className="mt-1 text-xs text-gray-500 bg-black/40 rounded px-2 py-1 break-all">
+                                                    <span className="text-gray-600">Output: </span>
+                                                    {node.output.length > 100 ? `${node.output.substring(0, 100)}...` : node.output}
+                                                </div>
+                                            )}
+                                            {node.error && (
+                                                <div className="mt-1 text-xs text-red-400 bg-red-950/20 rounded px-2 py-1">
+                                                    <span className="text-red-500">Error: </span>
+                                                    {node.error}
+                                                </div>
+                                            )}
                                         </div>
-                                        {node.output && (
-                                            <div className="mt-1 text-xs text-gray-500 bg-black/40 rounded px-2 py-1 break-all">
-                                                <span className="text-gray-600">Output: </span>
-                                                {node.output.length > 100 ? `${node.output.substring(0, 100)}...` : node.output}
-                                            </div>
-                                        )}
-                                        {node.error && (
-                                            <div className="mt-1 text-xs text-red-400 bg-red-950/20 rounded px-2 py-1">
-                                                <span className="text-red-500">Error: </span>
-                                                {node.error}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                ))}
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ))
+                )}
             </div>
         </aside>
     );
