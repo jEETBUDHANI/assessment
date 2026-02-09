@@ -81,7 +81,7 @@ export function isValidConnection(
 
     // Check if any source output type matches any target input type
     const isCompatible = sourceOutputTypes.some(outputType =>
-        targetInputTypes.includes(outputType)
+        (targetInputTypes as any).includes(outputType)
     );
 
     if (!isCompatible) {
