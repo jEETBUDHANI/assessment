@@ -63,9 +63,12 @@ export function isValidConnection(
     const sourceOutputTypes = sourceTypeDef.outputs || [];
 
     // Get input type requirements from target
-    const targetInputs = targetTypeDef.inputs;
-    if (!targetInputs) return false;
+    // Check if target node has inputs (some nodes like text/image/video don't have inputs)
+    if (!('inputs' in targetTypeDef) || !targetTypeDef.inputs) {
+        return false;
+    }
 
+    const targetInputs = targetTypeDef.inputs;
     const targetInputTypes = targetInputs[targetHandle as keyof typeof targetInputs];
     if (!targetInputTypes) return false;
 
