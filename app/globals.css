@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0f172a;
+  /* slate-950 */
+  --foreground: #f8fafc;
+  /* slate-50 */
+  --sidebar: #1e293b;
+  /* slate-800 */
+  --border: #334155;
+  /* slate-700 */
+  --primary: #8b5cf6;
+  /* violet-500 */
+  --accent: #a78bfa;
+  /* violet-400 */
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.react-flow__background {
+  background-color: var(--background);
+}
+
+.react-flow__container {
+  background-image: radial-gradient(#334155 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.react-flow__handle {
+  width: 8px;
+  height: 8px;
+  background-color: var(--primary);
+  border: 2px solid var(--background);
+}
+
+/* React Flow Edge Styling - Cyan like Weavy */
+.react-flow__edge-path {
+  stroke: #06b6d4;
+  stroke-width: 2;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #22d3ee;
+  stroke-width: 3;
+}
+
+/* React Flow Canvas Styling - Pure Black like Weavy */
+.react-flow {
+  background: #000000;
+}
+
+.node-selected {
+  outline: 2px solid var(--primary);
+  border-radius: 8px;
+}
+
+.executing-node {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Pulsating glow animation for executing nodes */
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.8);
+  }
+}

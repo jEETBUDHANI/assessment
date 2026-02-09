@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Workflow {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  nodes       Json        // React Flow nodes state
+  edges       Json        // React Flow edges state
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userId      String      // Clerk userId
+  executions  WorkflowExecution[]
+}
+
+model WorkflowExecution {
+  id          String      @id @default(cuid())
+  workflowId  String
+  workflow    Workflow    @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  status      String      // success, failed, running, partial
+  startTime   DateTime    @default(now())
+  endTime     DateTime?
+  duration    Int?        // in milliseconds
+  scope       String      // full, single, partial
+  userId      String      // Clerk userId
+  nodeRuns    NodeExecution[]
+}
+
+model NodeExecution {
+  id                  String            @id @default(cuid())
+  workflowExecutionId String
+  workflowExecution   WorkflowExecution @relation(fields: [workflowExecutionId], references: [id], onDelete: Cascade)
+  nodeId              String
+  nodeType            String
+  status              String            // success, failed, running
+  startTime           DateTime          @default(now())
+  endTime             DateTime?
+  duration            Int?              // in milliseconds
+  inputs              Json?
+  outputs             Json?
+  error               String?
+}
