@@ -69,7 +69,7 @@ export function isValidConnection(
     }
 
     const targetInputs = targetTypeDef.inputs;
-    const targetInputTypes = targetInputs[targetHandle as keyof typeof targetInputs];
+    const targetInputTypes: string[] | undefined = targetInputs[targetHandle as keyof typeof targetInputs];
     if (!targetInputTypes) return false;
 
     // Check if any source output type matches any target input type
