@@ -1,7 +1,13 @@
 import { Connection, Edge, Node } from 'reactflow';
 
+// Define explicit types for node definitions
+interface NodeDefinition {
+    inputs?: Record<string, string[]>;
+    outputs: string[];
+}
+
 // Define node type categories and their allowed input/output types
-const NODE_TYPE_DEFINITIONS = {
+const NODE_TYPE_DEFINITIONS: Record<string, NodeDefinition> = {
     text: {
         outputs: ['text']
     },
@@ -51,11 +57,11 @@ export function isValidConnection(
     const sourceNode = nodes.find(n => n.id === source);
     const targetNode = nodes.find(n => n.id === target);
 
-    if (!sourceNode || !targetNode) return false;
+    if (!sourceNode || !targetNode || !sourceNode.type || !targetNode.type) return false;
 
     // Get node type definitions
-    const sourceTypeDef = NODE_TYPE_DEFINITIONS[sourceNode.type as keyof typeof NODE_TYPE_DEFINITIONS];
-    const targetTypeDef = NODE_TYPE_DEFINITIONS[targetNode.type as keyof typeof NODE_TYPE_DEFINITIONS];
+    const sourceTypeDef = NODE_TYPE_DEFINITIONS[sourceNode.type];
+    const targetTypeDef = NODE_TYPE_DEFINITIONS[targetNode.type];
 
     if (!sourceTypeDef || !targetTypeDef) return false;
 
@@ -63,13 +69,14 @@ export function isValidConnection(
     const sourceOutputTypes = sourceTypeDef.outputs || [];
 
     // Get input type requirements from target
-    // Check if target node has inputs (some nodes like text/image/video don't have inputs)
-    if (!('inputs' in targetTypeDef) || !targetTypeDef.inputs) {
-        return false;
-    }
+    const targetInputs = targetTypeDef.inputs;
 
-    const targetInputs = targetTypeDef.inputs as Record<string, string[]>;
+    // If target has no inputs defined, it cannot accept connections
+    if (!targetInputs) return false;
+
     const targetInputTypes = targetInputs[targetHandle];
+
+    // If the specific handle doesn't exist in inputs
     if (!targetInputTypes) return false;
 
     // Check if any source output type matches any target input type
