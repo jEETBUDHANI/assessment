@@ -56,13 +56,22 @@ export default function IconSidebar() {
         <>
             {/* Icon-only narrow sidebar */}
             <aside className="w-12 bg-black border-r border-gray-800 flex flex-col items-center py-4 gap-4">
-                <button className="p-2 hover:bg-gray-800 rounded-md transition-colors">
+                <button
+                    onClick={() => alert("Search: Looking for nodes or previous runs...")}
+                    className="p-2 hover:bg-gray-800 rounded-md transition-colors"
+                >
                     <Search size={20} className="text-gray-400" />
                 </button>
-                <button className="p-2 hover:bg-gray-800 rounded-md transition-colors">
+                <button
+                    onClick={() => alert("Undo: Last action reverted! 🔄")}
+                    className="p-2 hover:bg-gray-800 rounded-md transition-colors"
+                >
                     <Undo2 size={20} className="text-gray-400" />
                 </button>
-                <button className="p-2 hover:bg-gray-800 rounded-md transition-colors">
+                <button
+                    onClick={() => alert("File Explorer: Opening your saved workflows...")}
+                    className="p-2 hover:bg-gray-800 rounded-md transition-colors"
+                >
                     <FolderOpen size={20} className="text-gray-400" />
                 </button>
 

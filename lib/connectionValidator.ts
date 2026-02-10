@@ -86,13 +86,53 @@ export function isValidConnection(
     );
 
     if (!isCompatible) {
-        console.warn(
-            `Invalid connection: ${sourceNode.type} (outputs: ${sourceOutputTypes.join(', ')}) ` +
-            `cannot connect to ${targetNode.type}.${targetHandle} (accepts: ${targetInputTypes.join(', ')})`
-        );
+        const errorMsg = `Invalid connection: ${sourceNode.type} outputs ${sourceOutputTypes.join(', ')}, but ${targetNode.type}.${targetHandle} requires ${targetInputTypes.join(', ')}.`;
+        console.warn(errorMsg);
+        // Instead of relying on the calling component to alert, we could return the error string
+        // but for now, we'll keep the boolean return and let the UI handle the alert.
     }
 
     return isCompatible;
+}
+
+export function getConnectionError(
+    connection: Connection,
+    nodes: Node[],
+    edges: Edge[]
+): string | null {
+    const { source, target, sourceHandle, targetHandle } = connection;
+
+    if (!source || !target) return "Invalid source or target";
+
+    const sourceNode = nodes.find(n => n.id === source);
+    const targetNode = nodes.find(n => n.id === target);
+
+    if (!sourceNode || !targetNode) return "Node not found";
+    if (!sourceNode.type || !targetNode.type) return "Invalid node types";
+
+    const sourceTypeDef = NODE_TYPE_DEFINITIONS[sourceNode.type];
+    const targetTypeDef = NODE_TYPE_DEFINITIONS[targetNode.type];
+
+    if (!sourceTypeDef) return `No definitions for source type: ${sourceNode.type}`;
+    if (!targetTypeDef) return `No definitions for target type: ${targetNode.type}`;
+
+    if (!targetTypeDef.inputs) return `${targetNode.type} does not accept any inputs`;
+    if (!targetHandle) return "No target handle selected. Make sure to drop the line directly on a handle.";
+
+    const targetInputTypes = targetTypeDef.inputs[targetHandle];
+    if (!targetInputTypes) return `Invalid input handle: ${targetHandle} on ${targetNode.type}`;
+
+    const sourceOutputTypes = sourceTypeDef.outputs || [];
+    const isCompatible = sourceOutputTypes.some(outputType =>
+        // @ts-ignore
+        targetInputTypes.includes(outputType)
+    );
+
+    if (!isCompatible) {
+        return `Incompatible types: ${sourceNode.type} outputs [${sourceOutputTypes.join(', ')}], but ${targetNode.type} ${targetHandle} only accepts [${targetInputTypes.join(', ')}]`;
+    }
+
+    return null;
 }
 
 // Helper to check if a connection already exists to a target handle

@@ -4,6 +4,7 @@ import React from 'react';
 import { Film } from 'lucide-react';
 import BaseNode from './BaseNode';
 import { NodeProps } from 'reactflow';
+import { useWorkflowStore } from '@/store/workflowStore';
 
 export default function ExtractFrameNode({ id, data, selected }: NodeProps) {
     return (
@@ -25,9 +26,14 @@ export default function ExtractFrameNode({ id, data, selected }: NodeProps) {
                     <label className="text-[10px] text-gray-500 uppercase">Timestamp</label>
                     <input
                         type="text"
-                        className="bg-black border border-gray-800 rounded p-1 text-xs text-gray-300"
+                        className="nodrag bg-black border border-gray-800 rounded p-1 text-xs text-gray-300 focus:border-cyan-500 focus:outline-none transition-colors"
                         placeholder="e.g., 5s or 50%"
-                        defaultValue="0s"
+                        value={data?.timestamp || '0s'}
+                        onChange={(e) => {
+                            import('@/store/workflowStore').then(st =>
+                                st.useWorkflowStore.getState().updateNodeData(id, { timestamp: e.target.value })
+                            );
+                        }}
                     />
                     <p className="text-[9px] text-gray-600">Enter seconds (e.g., 5s) or percentage (e.g., 50%)</p>
                 </div>

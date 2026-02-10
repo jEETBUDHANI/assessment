@@ -44,14 +44,18 @@ export default function ExpandableHistory() {
                     duration: execution.duration ? `${(execution.duration / 1000).toFixed(1)}s` : undefined,
                     scope: execution.scope,
                     nodeCount: execution.nodeRuns.length,
-                    nodeExecutions: execution.nodeRuns.map((node: any) => ({
-                        nodeId: node.nodeId,
-                        nodeName: node.nodeType,
-                        status: node.status,
-                        duration: node.duration ? `${(node.duration / 1000).toFixed(1)}s` : '0.0s',
-                        output: node.outputs ? JSON.stringify(node.outputs) : undefined,
-                        error: node.error || undefined
-                    }))
+                    nodeExecutions: execution.nodeRuns.map((node: any) => {
+                        // Extract actual output string from {output: "..."}
+                        const cleanOutput = node.outputs?.output || (node.outputs ? JSON.stringify(node.outputs) : undefined);
+                        return {
+                            nodeId: node.nodeId,
+                            nodeName: node.nodeType,
+                            status: node.status,
+                            duration: node.duration ? `${(node.duration / 1000).toFixed(1)}s` : '0.0s',
+                            output: cleanOutput,
+                            error: node.error || undefined
+                        };
+                    })
                 }));
 
                 setRuns(transformedRuns);
@@ -62,6 +66,9 @@ export default function ExpandableHistory() {
         }
 
         fetchExecutions();
+        // Poll for updates every 5 seconds for the demo
+        const interval = setInterval(fetchExecutions, 5000);
+        return () => clearInterval(interval);
     }, []);
 
     const getStatusIcon = (status: string) => {
@@ -139,9 +146,9 @@ export default function ExpandableHistory() {
                                                 <span className="text-xs text-gray-600">{node.duration}</span>
                                             </div>
                                             {node.output && (
-                                                <div className="mt-1 text-xs text-gray-500 bg-black/40 rounded px-2 py-1 break-all">
-                                                    <span className="text-gray-600">Output: </span>
-                                                    {node.output.length > 100 ? `${node.output.substring(0, 100)}...` : node.output}
+                                                <div className="mt-2 text-xs text-gray-300 bg-black/60 rounded-md border border-gray-800/50 px-3 py-2 leading-relaxed shadow-inner">
+                                                    <span className="text-[10px] uppercase font-bold text-cyan-500/80 block mb-1">Output Log</span>
+                                                    {node.output}
                                                 </div>
                                             )}
                                             {node.error && (

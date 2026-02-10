@@ -4,6 +4,7 @@ import React from 'react';
 import { Type } from 'lucide-react';
 import BaseNode from './BaseNode';
 import { NodeProps } from 'reactflow';
+import { useWorkflowStore } from '@/store/workflowStore';
 
 export default function TextNode({ id, data, selected }: NodeProps) {
     return (
@@ -18,9 +19,14 @@ export default function TextNode({ id, data, selected }: NodeProps) {
         >
             <div className="flex flex-col gap-2">
                 <textarea
-                    className="bg-black border border-gray-800 rounded p-2 text-xs text-gray-300 min-h-[80px] resize-none"
+                    className="nodrag bg-black border border-gray-800 rounded p-2 text-xs text-gray-300 min-h-[80px] resize-none focus:border-cyan-500 focus:outline-none transition-colors"
                     placeholder="Enter your text here..."
-                    defaultValue={data?.text || ''}
+                    value={data?.value || ''}
+                    onChange={(e) => {
+                        useWorkflowStore.getState().updateNodeData(id, { value: e.target.value });
+                    }}
+                    onKeyDown={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
                 />
             </div>
         </BaseNode>

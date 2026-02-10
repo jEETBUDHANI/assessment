@@ -4,6 +4,7 @@ import React from 'react';
 import { Crop } from 'lucide-react';
 import BaseNode from './BaseNode';
 import { NodeProps } from 'reactflow';
+import { useWorkflowStore } from '@/store/workflowStore';
 
 export default function CropImageNode({ id, data, selected }: NodeProps) {
     return (
@@ -29,18 +30,28 @@ export default function CropImageNode({ id, data, selected }: NodeProps) {
                         <label className="text-[10px] text-gray-500 uppercase">X (%)</label>
                         <input
                             type="number"
-                            className="bg-black border border-gray-800 rounded p-1 text-xs text-gray-300"
+                            className="nodrag bg-black border border-gray-800 rounded p-1 text-xs text-gray-300"
                             placeholder="0"
-                            defaultValue={0}
+                            value={data?.x_percent ?? 0}
+                            onChange={(e) => {
+                                import('@/store/workflowStore').then(st =>
+                                    st.useWorkflowStore.getState().updateNodeData(id, { x_percent: parseInt(e.target.value) || 0 })
+                                );
+                            }}
                         />
                     </div>
                     <div className="flex flex-col gap-1">
                         <label className="text-[10px] text-gray-500 uppercase">Y (%)</label>
                         <input
                             type="number"
-                            className="bg-black border border-gray-800 rounded p-1 text-xs text-gray-300"
+                            className="nodrag bg-black border border-gray-800 rounded p-1 text-xs text-gray-300"
                             placeholder="0"
-                            defaultValue={0}
+                            value={data?.y_percent ?? 0}
+                            onChange={(e) => {
+                                import('@/store/workflowStore').then(st =>
+                                    st.useWorkflowStore.getState().updateNodeData(id, { y_percent: parseInt(e.target.value) || 0 })
+                                );
+                            }}
                         />
                     </div>
                 </div>
@@ -49,18 +60,28 @@ export default function CropImageNode({ id, data, selected }: NodeProps) {
                         <label className="text-[10px] text-gray-500 uppercase">Width (%)</label>
                         <input
                             type="number"
-                            className="bg-black border border-gray-800 rounded p-1 text-xs text-gray-300"
+                            className="nodrag bg-black border border-gray-800 rounded p-1 text-xs text-gray-300"
                             placeholder="100"
-                            defaultValue={100}
+                            value={data?.width_percent ?? 100}
+                            onChange={(e) => {
+                                import('@/store/workflowStore').then(st =>
+                                    st.useWorkflowStore.getState().updateNodeData(id, { width_percent: parseInt(e.target.value) || 100 })
+                                );
+                            }}
                         />
                     </div>
                     <div className="flex flex-col gap-1">
                         <label className="text-[10px] text-gray-500 uppercase">Height (%)</label>
                         <input
                             type="number"
-                            className="bg-black border border-gray-800 rounded p-1 text-xs text-gray-300"
+                            className="nodrag bg-black border border-gray-800 rounded p-1 text-xs text-gray-300"
                             placeholder="100"
-                            defaultValue={100}
+                            value={data?.height_percent ?? 100}
+                            onChange={(e) => {
+                                import('@/store/workflowStore').then(st =>
+                                    st.useWorkflowStore.getState().updateNodeData(id, { height_percent: parseInt(e.target.value) || 100 })
+                                );
+                            }}
                         />
                     </div>
                 </div>

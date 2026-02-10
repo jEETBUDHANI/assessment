@@ -17,22 +17,50 @@ export default function WorkflowPage() {
 
 
   const handleRunWorkflow = async () => {
+    let workflowId = useWorkflowStore.getState().activeWorkflowId;
+
+    // 1. Ensure workflow is saved to get an ID
+    if (!workflowId) {
+      try {
+        const res = await fetch('/api/workflows', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: "Demo Workflow", nodes, edges })
+        });
+        const data = await res.json();
+        workflowId = data.id;
+        useWorkflowStore.getState().setActiveWorkflowId(workflowId);
+      } catch (err) {
+        console.error("Failed to save workflow for history:", err);
+        return;
+      }
+    }
+
     setRunning(true);
     try {
+      // 2. Create Execution Record
+      const execRes = await fetch('/api/executions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workflowId, scope: 'full', nodeCount: nodes.length })
+      });
+      const execData = await execRes.json();
+      const executionId = execData.id;
+
+      // 3. Run Engine
       const engine = new ExecutionEngine(
         nodes,
         edges,
         (nodeId) => {
-          // Mark node as executing
           updateNodeData(nodeId, { executing: true });
         },
         (nodeId, result) => {
-          // Mark node as complete and store result
           updateNodeData(nodeId, {
             executing: false,
             result: result.status === 'success' ? result.output : result.error
           });
-        }
+        },
+        executionId
       );
       await engine.execute();
     } catch (error) {
@@ -147,10 +175,19 @@ export default function WorkflowPage() {
               Import
             </button>
             <div className="text-sm text-gray-400">★ 150 credits</div>
-            <button className="text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-md transition-colors">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Workflow URL copied to clipboard! 🔗");
+              }}
+              className="text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-md transition-colors"
+            >
               Share
             </button>
-            <button className="flex items-center gap-1 text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-md transition-colors">
+            <button
+              onClick={() => alert("AI Tasks:\n1. Video Analysis\n2. Image Enhancement\n3. Text Summarization")}
+              className="flex items-center gap-1 text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded-md transition-colors"
+            >
               Tasks
               <ChevronDown size={14} />
             </button>

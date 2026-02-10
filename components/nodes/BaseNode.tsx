@@ -44,19 +44,31 @@ export default function BaseNode({
         )}>
             {/* Input Handles */}
             {inputs.map((input, idx) => (
-                <Handle
+                <div
                     key={input.id}
-                    type="target"
-                    position={input.position || Position.Left}
-                    id={input.id}
-                    style={{
-                        top: `${((idx + 1) * 100) / (inputs.length + 1)}%`,
-                        background: '#06b6d4',
-                        width: '10px',
-                        height: '10px',
-                        border: '2px solid #000'
-                    }}
-                />
+                    className="absolute left-0 w-full pointer-events-none"
+                    style={{ top: `${((idx + 1) * 100) / (inputs.length + 1)}%` }}
+                >
+                    <div className="relative flex items-center group pointer-events-none">
+                        <Handle
+                            type="target"
+                            position={Position.Left}
+                            id={input.id}
+                            style={{
+                                background: '#06b6d4',
+                                width: '10px',
+                                height: '10px',
+                                border: '2px solid #000',
+                                left: 0,
+                                transform: 'translate(-50%, -50%)',
+                                pointerEvents: 'all'
+                            }}
+                        />
+                        <span className="ml-3 text-[10px] text-gray-400 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-[#1a1a1a] px-1 rounded shadow-lg border border-gray-800 pointer-events-none">
+                            {input.label}
+                        </span>
+                    </div>
+                </div>
             ))}
 
             {/* Header */}
@@ -82,28 +94,45 @@ export default function BaseNode({
                 {children}
 
                 {data?.result && (
-                    <div className="text-xs text-gray-500 mt-2 p-2 bg-black/40 rounded border border-gray-800">
-                        <div className="font-medium text-gray-400 mb-1">Result:</div>
-                        <div className="break-all">{data.result}</div>
+                    <div className="mt-4 p-3 bg-black/60 rounded-lg border border-cyan-500/20 shadow-inner">
+                        <div className="flex items-center gap-2 mb-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+                            <span className="text-[10px] uppercase font-bold text-cyan-500 tracking-wider">Final Output</span>
+                        </div>
+                        <div className="text-xs text-gray-300 leading-relaxed break-words">
+                            {data.result}
+                        </div>
                     </div>
                 )}
             </div>
 
             {/* Output Handles */}
             {outputs.map((output, idx) => (
-                <Handle
+                <div
                     key={output.id}
-                    type="source"
-                    position={output.position || Position.Right}
-                    id={output.id}
-                    style={{
-                        top: `${((idx + 1) * 100) / (outputs.length + 1)}%`,
-                        background: '#06b6d4',
-                        width: '10px',
-                        height: '10px',
-                        border: '2px solid #000'
-                    }}
-                />
+                    className="absolute right-0 w-full flex justify-end pointer-events-none"
+                    style={{ top: `${((idx + 1) * 100) / (outputs.length + 1)}%` }}
+                >
+                    <div className="relative flex items-center group pointer-events-none">
+                        <span className="mr-3 text-[10px] text-gray-400 font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity bg-[#1a1a1a] px-1 rounded shadow-lg border border-gray-800 pointer-events-none">
+                            {output.label}
+                        </span>
+                        <Handle
+                            type="source"
+                            position={Position.Right}
+                            id={output.id}
+                            style={{
+                                background: '#06b6d4',
+                                width: '10px',
+                                height: '10px',
+                                border: '2px solid #000',
+                                right: 0,
+                                transform: 'translate(50%, -50%)',
+                                pointerEvents: 'all'
+                            }}
+                        />
+                    </div>
+                </div>
             ))}
         </div>
     );

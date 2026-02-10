@@ -17,6 +17,7 @@ export interface NodeExecutionInput {
 export class ExecutionEngine {
     private nodes: Node[];
     private edges: Edge[];
+    private executionId?: string;
     private results: Map<string, any> = new Map();
     private onNodeStart: (nodeId: string) => void;
     private onNodeComplete: (nodeId: string, result: any) => void;
@@ -25,12 +26,14 @@ export class ExecutionEngine {
         nodes: Node[],
         edges: Edge[],
         onNodeStart: (nodeId: string) => void,
-        onNodeComplete: (nodeId: string, result: any) => void
+        onNodeComplete: (nodeId: string, result: any) => void,
+        executionId?: string
     ) {
         this.nodes = nodes;
         this.edges = edges;
         this.onNodeStart = onNodeStart;
         this.onNodeComplete = onNodeComplete;
+        this.executionId = executionId;
     }
 
     async execute() {
@@ -45,14 +48,14 @@ export class ExecutionEngine {
     private async executeNode(nodeId: string) {
         const node = this.nodes.find(n => n.id === nodeId)!;
 
-        // Gather inputs from incoming edges
-        const incomingData: Record<string, any> = {};
+        // Merge node's static data with incoming data from edges
+        const incomingData: Record<string, any> = { ...node.data };
         const incomingEdges = this.edges.filter(e => e.target === nodeId);
 
         incomingEdges.forEach(edge => {
             const sourceResult = this.results.get(edge.source);
             if (sourceResult) {
-                // Map source output to target input handle
+                // Map source output to target input handle, overriding static data if any
                 const targetHandle = edge.targetHandle || 'default';
                 incomingData[targetHandle] = sourceResult;
             }
@@ -89,7 +92,8 @@ export class ExecutionEngine {
             body: JSON.stringify({
                 nodeId: node.id,
                 nodeType: node.type,
-                inputs
+                inputs,
+                executionId: this.executionId
             })
         });
 
